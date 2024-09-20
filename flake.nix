@@ -1,29 +1,26 @@
 {
-  inputs.nixpkgs.url = "nixpkgs/nixpkgs-unstable";
-  
-  inputs.flakelight.url = "github:nix-community/flakelight";
-  inputs.flakelight-darwin.url = "github:cmacrae/flakelight-darwin";  
-  
-  inputs.home-manager.url = "github:nix-community/home-manager";
-  inputs.catppuccin.url = "github:catppuccin/nix";
-  inputs.zjstatus.url = "github:dj95/zjstatus";
-  inputs.nixvim.url = "github:nix-community/nixvim";
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
 
-  outputs = { flakelight, ... }@inputs:
-  
-  flakelight ./. ({ lib, ... }:
-  {
-    imports = [
-      ./flake/nixos.nix
-      ./flake/home.nix
-      ./flake/darwin.nix
-    ];
-    
-    inherit inputs;
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
-    nixDir = ./.;
-        
-    systems = lib.systems.flakeExposed;
-  });
+    zjstatus.url = "github:dj95/zjstatus";
+  };
+
+  outputs =
+    { self, nixpkgs, ... }@inputs:
+
+    {
+      nixosConfigurations = {
+        "nixos" = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = inputs;
+          modules = [ ./configuration.nix ];
+        };
+      };
+    };
 }
-
