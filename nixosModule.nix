@@ -7,7 +7,7 @@
 }:
 
 let
-  inherit (config) nixos;
+  inherit (config) nixos services;
   inherit (lib)
     mkDefault
     mkOption
@@ -18,14 +18,12 @@ let
     ;
 
   inherit (inputs.self) nixosModules homeModules;
-  inherit (inputs.home-manager.nixosModules) home-manager;
 
   capitalizeString = s: toUpper (substring 0 1 s) + substring 1 (stringLength s) s;
 in
 {
   imports = [
-    home-manager
-    # nixosModules.home-manager
+    nixosModules.home-manager
     nixosModules.nixos-shell
   ];
 
@@ -35,21 +33,19 @@ in
       default = "nixos";
     };
 
-    nixos.defaultUser = mkOption {
+    nixos.userName = mkOption {
       type = types.str;
       default = "nixos";
     };
   };
 
   config = {
-    networking.hostName = mkDefault nixos.hostName;
-
-    users.defaultUserShell = pkgs.fish;
+    networking.hostName = nixos.hostName;
 
     users.users.default = {
       isNormalUser = true;
-      name = nixos.defaultUser;
-      description = capitalizeString nixos.defaultUser;
+      name = nixos.userName;
+      description = capitalizeString nixos.userName;
 
       extraGroups = [
         "networkmanager"
@@ -57,91 +53,36 @@ in
       ];
     };
 
-    home-manager = {
-      useGlobalPkgs = true;
-      useUserPackages = true;
-      extraSpecialArgs = {
-        inherit inputs;
-      };
-      users.default = {
-        imports = [
-          homeModules.nixvim
-          homeModules.helix
-          homeModules.zellij
-        ];
+    users.defaultUserShell = pkgs.fish;
 
-        home.packages = [
-          pkgs.nixd
-          pkgs.nixfmt-rfc-style
-        ];
-
-        programs.git = {
-          enable = true;
-          userName = "Rico Schouten";
-          userEmail = "ricoschouten@gmail.com";
-        };
-
-        programs.gh.enable = true;
-
-        programs.fish.enable = true;
-
-        programs.zellij = {
-          enable = true;
-          enableFishIntegration = true;
-
-          layout = ./zjstatus.kdl;
-
-          autoAttach = true;
-          autoExit = true;
-        };
-
-        programs.nixvim.enable = true;
-
-        programs.helix = {
-          enable = true;
-
-          languages = {
-            language-server.nixd = {
-              command = "nixd";
-            };
-
-            language = [
-              {
-                name = "nix";
-                language-servers = [ "nixd" ];
-                formatter.command = "nixfmt";
-                auto-format = true;
-              }
-            ];
-          };
-        };
-
-        home.stateVersion = "24.05";
-      };
-    };
+    home-manager.useGlobalPkgs = true;
+    home-manager.useUserPackages = true;
 
     programs.fish = {
       enable = true;
-      interactiveShellInit = "set -g fish_greeting";
+      interactiveShellInit = mkDefault "set -g fish_greeting";
     };
-
-    programs.nh = {
-      enable = true;
-      flake = /etc/nixos;
-    };
-
-    services.sshd.enable = true;
-
-    programs.mosh.enable = true;
 
     environment.systemPackages = [
       pkgs.nixd
       pkgs.nixfmt-rfc-style
     ];
 
-    time.timeZone = "Europe/Amsterdam";
+    programs.nh = {
+      enable = true;
+      flake = /etc/nixos;
+    };
 
+    programs.mosh.enable = services.openssh.enable;
+
+    time.timeZone = "Europe/Amsterdam";
     i18n.defaultLocale = "en_US.UTF-8";
+
+    nix.settings.experimental-features = [
+      "nix-command"
+      "flakes"
+      # "pipe-operators"
+    ];
 
     nix.nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
   };

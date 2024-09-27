@@ -12,12 +12,14 @@
 {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
-    ./hardware-configuration.nix
-    ./disk-configurtaion.nix
+    # ./hardware-configuration.nix
+    ./disk-configuration.nix
   ];
 
   boot.loader.grub = {
     enable = true;
+
+    device = "/dev/vda";
     efiSupport = true;
     efiInstallAsRemovable = true;
   };
