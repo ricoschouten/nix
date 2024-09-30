@@ -1,8 +1,6 @@
 { inputs, ... }:
 
 let
-  inherit (inputs.disko.nixosModules) disko;
-  inherit (inputs.nixos-facter-modules.nixosModules) facter;
   inherit (inputs.self) nixosModules;
 in
 {
@@ -10,12 +8,16 @@ in
   modules = [
     nixosModules.default
     {
-      nixos.hostName = "vps";
-      nixos.userName = "rico";
+      networking.hostName = "vps";
+      user.name = "rico";
+
+      facter.reportPath = ./facter.json;
+      root.openssh.authorizedKeys.keys = [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILex7jX9WjluE9nIucBjwb3oRR90F+aJUBY/lcANCbjm"
+      ];
+
+      home.stateVersion = "24.11";
+      system.stateVersion = "24.11";
     }
-    facter
-    { facter.reportPath = ./facter.json; }
-    disko
-    ./configuration.nix
   ];
 }

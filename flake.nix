@@ -21,7 +21,6 @@
     { flakelight, ... }@inputs:
     flakelight ./. {
       inherit inputs;
-
       systems = [ "x86_64-linux" ];
       nixDir = ./.;
     };

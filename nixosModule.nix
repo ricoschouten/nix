@@ -1,5 +1,4 @@
 {
-  config,
   lib,
   pkgs,
   inputs,
@@ -7,83 +6,48 @@
 }:
 
 let
-  inherit (config) nixos services;
-  inherit (lib)
-    mkDefault
-    mkOption
-    types
-    substring
-    stringLength
-    toUpper
-    ;
-
-  inherit (inputs.self) nixosModules homeModules;
-
-  capitalizeString = s: toUpper (substring 0 1 s) + substring 1 (stringLength s) s;
+  inherit (lib) mkDefault;
+  inherit (inputs.self) nixosModules;
 in
 {
   imports = [
-    nixosModules.home-manager
-    nixosModules.nixos-shell
+    nixosModules.system
+    nixosModules.users
+    nixosModules.wsl
+    nixosModules.vm
   ];
 
-  options = {
-    nixos.hostName = mkOption {
-      type = types.str;
-      default = "nixos";
-    };
+  networking.hostName = mkDefault "nixos";
+  networking.useDHCP = mkDefault true;
 
-    nixos.userName = mkOption {
-      type = types.str;
-      default = "nixos";
-    };
+  boot.loader.grub.enable = mkDefault true;
+
+  services.openssh.enable = mkDefault true;
+
+  programs.mosh.enable = mkDefault true;
+
+  users.defaultUserShell = pkgs.fish;
+
+  programs.fish = {
+    enable = true;
+    interactiveShellInit = mkDefault "set -g fish_greeting";
   };
 
-  config = {
-    networking.hostName = nixos.hostName;
+  environment.systemPackages = [
+    pkgs.coreutils
+    pkgs.git
+    pkgs.nixd
+    pkgs.nixfmt-rfc-style
+  ];
 
-    users.users.default = {
-      isNormalUser = true;
-      name = nixos.userName;
-      description = capitalizeString nixos.userName;
+  time.timeZone = mkDefault "Europe/Amsterdam";
+  i18n.defaultLocale = mkDefault "en_US.UTF-8";
 
-      extraGroups = [
-        "networkmanager"
-        "wheel"
-      ];
-    };
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+    # "pipe-operators"
+  ];
 
-    users.defaultUserShell = pkgs.fish;
-
-    home-manager.useGlobalPkgs = true;
-    home-manager.useUserPackages = true;
-
-    programs.fish = {
-      enable = true;
-      interactiveShellInit = mkDefault "set -g fish_greeting";
-    };
-
-    environment.systemPackages = [
-      pkgs.nixd
-      pkgs.nixfmt-rfc-style
-    ];
-
-    programs.nh = {
-      enable = true;
-      flake = /etc/nixos;
-    };
-
-    programs.mosh.enable = services.openssh.enable;
-
-    time.timeZone = "Europe/Amsterdam";
-    i18n.defaultLocale = "en_US.UTF-8";
-
-    nix.settings.experimental-features = [
-      "nix-command"
-      "flakes"
-      # "pipe-operators"
-    ];
-
-    nix.nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
-  };
+  nix.nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
 }
