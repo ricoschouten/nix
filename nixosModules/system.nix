@@ -1,5 +1,4 @@
 {
-  config,
   lib,
   inputs,
   modulesPath,
@@ -7,8 +6,7 @@
 }:
 
 let
-  inherit (config) boot;
-  inherit (lib) mkIf mkDefault;
+  inherit (lib) mkDefault;
   inherit (inputs) disko nixos-facter-modules;
 in
 {
@@ -19,9 +17,18 @@ in
     (modulesPath + "/profiles/qemu-guest.nix")
   ];
 
-  boot.loader.grub = mkIf boot.loader.grub.enable {
-    efiSupport = mkDefault true;
-    efiInstallAsRemovable = mkDefault true;
+  networking = mkDefault {
+    hostName = "nixos";
+    useDHCP = true;
+  };
+
+  services.openssh.enable = mkDefault true;
+
+  programs.mosh.enable = mkDefault true;
+
+  boot.loader.grub = mkDefault {
+    efiSupport = true;
+    efiInstallAsRemovable = true;
   };
 
   disko.devices = {

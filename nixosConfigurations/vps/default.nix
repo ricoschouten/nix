@@ -6,6 +6,7 @@ in
 {
   system = "x86_64-linux";
   modules = [
+    nixosModules.system
     nixosModules.default
     {
       networking.hostName = "vps";

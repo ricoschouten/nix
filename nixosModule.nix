@@ -11,20 +11,10 @@ let
 in
 {
   imports = [
-    nixosModules.system
     nixosModules.users
     nixosModules.wsl
     nixosModules.vm
   ];
-
-  networking.hostName = mkDefault "nixos";
-  networking.useDHCP = mkDefault true;
-
-  boot.loader.grub.enable = mkDefault true;
-
-  services.openssh.enable = mkDefault true;
-
-  programs.mosh.enable = mkDefault true;
 
   users.defaultUserShell = pkgs.fish;
 
