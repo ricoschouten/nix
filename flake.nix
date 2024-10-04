@@ -1,29 +1,32 @@
 {
-  inputs.nixpkgs.url = "nixpkgs/nixpkgs-unstable";
-  
-  inputs.flakelight.url = "github:nix-community/flakelight";
-  inputs.flakelight-darwin.url = "github:cmacrae/flakelight-darwin";  
-  
-  inputs.home-manager.url = "github:nix-community/home-manager";
-  inputs.catppuccin.url = "github:catppuccin/nix";
-  inputs.zjstatus.url = "github:dj95/zjstatus";
-  inputs.nixvim.url = "github:nix-community/nixvim";
+  description = "NixOS configuration";
 
-  outputs = { flakelight, ... }@inputs:
-  
-  flakelight ./. ({ lib, ... }:
-  {
-    imports = [
-      ./flake/nixos.nix
-      ./flake/home.nix
-      ./flake/darwin.nix
-    ];
-    
-    inherit inputs;
+  inputs = {
+    nixpkgs.url = "nixpkgs/nixos-unstable";
+    flakelight.url = "github:nix-community/flakelight";
 
-    nixDir = ./.;
-        
-    systems = lib.systems.flakeExposed;
-  });
+    home-manager.url = "github:nix-community/home-manager";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
+    nixvim.url = "github:nix-community/nixvim";
+    catppuccin.url = "github:catppuccin/nix";
+  };
+
+  outputs =
+    { flakelight, ... }@inputs:
+    flakelight ./. {
+      inherit inputs;
+
+      nixosConfigurations."nixos" = {
+        system = "x86_64-linux";
+        modules = [
+          inputs.self.nixosModules.default
+          {
+            networking.hostName = "nixos";
+            user.name = "rico";
+            user.description = "Rico Schouten";
+          }
+        ];
+      };
+    };
 }
-
