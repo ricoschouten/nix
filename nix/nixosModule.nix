@@ -1,53 +1,42 @@
 {
   lib,
-  config,
+  pkgs,
   inputs,
   ...
 }:
 
 let
-  inherit (lib) mkIf mkDefault mkAliasOptionModule;
-  inherit (config) networking;
-  inherit (inputs) self home-manager;
-  inherit (inputs.self) nixosModules homeModules;
+  inherit (lib) mkDefault;
+  inherit (inputs.self) nixosModules;
 in
 {
   imports = [
-    home-manager.nixosModules.home-manager
+    inputs.catppuccin.nixosModules.catppuccin
 
-    (mkAliasOptionModule [ "user" ] [
-      "users"
-      "users"
-      "default"
-    ])
-
-    (import "${self}/configuration.nix")
-    (import "${self}/hardware-configuration.nix")
-
+    nixosModules.user
+    nixosModules.home
     nixosModules.fish
     nixosModules.gnome
+    nixosModules.hyprland
+    nixosModules.vm
   ];
 
-  users.users.default = {
-    isNormalUser = true;
-    extraGroups = [
-      "wheel"
-      (mkIf networking.networkmanager.enable "networkmanager")
-    ];
-  };
+  catppuccin.enable = true;
 
-  home-manager = {
-    useGlobalPkgs = mkDefault true;
-    useUserPackages = mkDefault true;
-    sharedModules = [ homeModules.default ];
-
-    users.default = import "${self}/home.nix";
-  };
+  environment.systemPackages = [
+    pkgs.coreutils
+    pkgs.git
+    # pkgs.nixd
+    # pkgs.nixfmt-rfc-style
+  ];
 
   nixpkgs.config.allowUnfree = mkDefault true;
 
   nix.settings.experimental-features = [
     "nix-command"
     "flakes"
+    # "pipe-operators"
   ];
+
+  nix.nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
 }

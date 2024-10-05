@@ -1,19 +1,26 @@
 {
-  lib,
   config,
+  lib,
   inputs,
   ...
 }:
 
 let
-  inherit (lib) mkIf mkDefault;
   inherit (config) programs;
+  inherit (lib) mkIf mkDefault;
   inherit (inputs.nixvim) homeManagerModules;
 in
 {
   imports = [ homeManagerModules.nixvim ];
 
-  config = mkIf programs.nixvim.enable {
-    programs.nixvim.defaultEditor = mkDefault true;
+  config = mkDefault {
+    programs.nixvim = mkIf programs.nixvim.enable {
+      defaultEditor = true;
+      colorschemes.base16.enable = true;
+
+      plugins = {
+        which-key.enable = true;
+      };
+    };
   };
 }
